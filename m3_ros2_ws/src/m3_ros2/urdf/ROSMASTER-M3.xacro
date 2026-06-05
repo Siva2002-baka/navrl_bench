@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<robot name="ROSMASTER-M3" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:arg name="prefix" default="" />                                      <!-- namespace -->
+  <xacro:arg name="laser_type" default="dual" />                              <!-- laser sensor type: single/dual -->    
+  <xacro:arg name="camera_type" default="as_hp60c" />                         <!-- depth camera type -->
+
+  <xacro:include filename="$(find m3_ros2)/urdf/materials.xacro"/>     <!-- model color attributes -->
+  <xacro:include filename="$(find m3_ros2)/urdf/common_base.xacro" />  <!-- robot chassis template -->
+  <xacro:include filename="$(find m3_ros2)/urdf/laser.xacro" />        <!-- lidar template -->
+
+  <xacro:common_base prefix="$(arg prefix)"  camera_type="$(arg camera_type)" /><!-- instantiated robot chassis -->
+  <xacro:laser laser_type="$(arg laser_type)" prefix="$(arg prefix)" />         <!-- instantiate lidar -->
+
+  <!-- <ros2_control name="GazeboSystem" type="system">
+        <hardware>
+            <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        </hardware>
+    <joint name="$(arg prefix)lwheel1_Joint">
+      <command_interface name="velocity"/>
+      <state_interface name="velocity"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="$(arg prefix)lwheel2_Joint">
+      <command_interface name="velocity"/>
+      <state_interface name="velocity"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="$(arg prefix)rwheel1_Joint">
+      <command_interface name="velocity"/>
+      <state_interface name="velocity"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="$(arg prefix)rwheel2_Joint">
+      <command_interface name="velocity"/>
+      <state_interface name="velocity"/>
+      <state_interface name="position"/>
+    </joint>
+  </ros2_control>
+  <gazebo>
+    <plugin
+        filename="gz_ros2_control-system"
+        name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+        <parameters>$(find m3_ros2)/config/mecanum_controllers.yaml</parameters>
+    </plugin>
+  </gazebo> -->
+   <gazebo reference="$(arg prefix)lwheel1_Link">
+    <gravity>false</gravity>
+    <self_collide>false</self_collide>
+    <collision>
+      <surface>
+        <friction>
+          <ode>
+            <mu>0.0</mu>
+            <mu2>0.0</mu2>
+          </ode>
+        </friction>
+      </surface>
+    </collision>
+  </gazebo>
+     <gazebo reference="$(arg prefix)lwheel2_Link">
+    <gravity>false</gravity>
+    <self_collide>false</self_collide>
+    <collision>
+      <surface>
+        <friction>
+          <ode>
+            <mu>0.0</mu>
+            <mu2>0.0</mu2>
+          </ode>
+        </friction>
+      </surface>
+    </collision>
+  </gazebo>
+     <gazebo reference="$(arg prefix)rwheel1_Link">
+    <gravity>false</gravity>
+    <self_collide>false</self_collide>
+    <collision>
+      <surface>
+        <friction>
+          <ode>
+            <mu>0.0</mu>
+            <mu2>0.0</mu2>
+          </ode>
+        </friction>
+      </surface>
+    </collision>
+  </gazebo>
+     <gazebo reference="$(arg prefix)rwheel2_Link">
+    <gravity>false</gravity>
+    <self_collide>false</self_collide>
+    <collision>
+      <surface>
+        <friction>
+          <ode>
+            <mu>0.0</mu>
+            <mu2>0.0</mu2>
+          </ode>
+        </friction>
+      </surface>
+    </collision>
+  </gazebo>
+  <!-- <gazebo>
+  <plugin
+    filename="libkinematic_mecanum_system.so"
+    name="m3_kinematic_mecanum::KinematicMecanumSystem">
+
+    <topic>/cmd_vel</topic>
+    <base_link>$(arg prefix)base_link</base_link>
+
+    <front_left_joint>$(arg prefix)lwheel1_Joint</front_left_joint>
+    <rear_left_joint>$(arg prefix)lwheel2_Joint</rear_left_joint>
+    <front_right_joint>$(arg prefix)rwheel1_Joint</front_right_joint>
+    <rear_right_joint>$(arg prefix)rwheel2_Joint</rear_right_joint>
+
+    <wheel_radius>0.05</wheel_radius>
+    <wheel_base_x>0.0795</wheel_base_x>
+    <wheel_base_y>0.09775</wheel_base_y>
+  </plugin>
+</gazebo> -->
+<!-- Pose-based mecanum drive plugin (no ros2_control needed) -->
+  <gazebo>
+    <plugin
+      filename="libmecanum_pose_drive_system.so"
+      name="m3_mecanum_pose_drive::MecanumPoseDriveSystem">
+
+      <topic>/cmd_vel</topic>
+      <!-- <base_link>$(arg prefix)base_link</base_link> -->
+      <base_link>$(arg prefix)base_footprint</base_link>
+
+
+      <front_left_joint>$(arg prefix)lwheel1_Joint</front_left_joint>
+      <rear_left_joint>$(arg prefix)lwheel2_Joint</rear_left_joint>
+      <front_right_joint>$(arg prefix)rwheel1_Joint</front_right_joint>
+      <rear_right_joint>$(arg prefix)rwheel2_Joint</rear_right_joint>
+
+      <wheel_radius>0.05</wheel_radius>
+      <wheel_base_x>0.0795</wheel_base_x>
+      <wheel_base_y>0.09775</wheel_base_y>
+      <cmd_timeout>0.5</cmd_timeout>
+      <yaw_correction_gain>50.0</yaw_correction_gain>
+
+      <odom_topic>/odom_raw</odom_topic>
+      <tf_topic>/tf_gz_unused</tf_topic>
+      <frame_id>odom</frame_id>
+      <child_frame_id>$(arg prefix)base_footprint</child_frame_id>
+      <odom_publish_frequency>50</odom_publish_frequency>
+    </plugin>
+  </gazebo>
+  <!-- <gazebo>
+    <plugin
+      filename="gz-sim-mecanum-drive-system"
+      name="gz::sim::systems::MecanumDrive">
+
+      <front_left_joint>lwheel1_Joint</front_left_joint>
+      <back_left_joint>lwheel2_Joint</back_left_joint>
+      <front_right_joint>rwheel1_Joint</front_right_joint>
+      <back_right_joint>rwheel2_Joint</back_right_joint>
+
+      <wheel_separation>0.1955</wheel_separation>
+      <wheelbase>0.159</wheelbase>
+      <wheel_radius>0.05</wheel_radius>
+
+      <odom_publish_frequency>50</odom_publish_frequency>
+      <topic>cmd_vel</topic>
+      <odom_topic>odom</odom_topic>
+      <tf_topic>tf</tf_topic>
+
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_link</child_frame_id>
+    </plugin>
+  </gazebo> -->
+    <gazebo reference="$(arg prefix)laser0_frame">
+        <sensor name='gpu_lidar0' type='gpu_lidar'>
+            <pose>0 0 0 0 0 0</pose>
+            <topic>/scan0</topic>
+            <!-- <ignition_frame_id>lidar_link</ignition_frame_id> -->
+            <frame_name>$(arg prefix)laser0_frame</frame_name>
+            <gz_frame_id>$(arg prefix)laser0_frame</gz_frame_id>
+            <update_rate>6</update_rate>
+            <lidar>
+                <scan>
+                <horizontal>
+                    <samples>667</samples>
+                    <resolution>1</resolution>
+                    <min_angle>-3.14159</min_angle>
+                    <max_angle>3.14159</max_angle>
+                </horizontal>
+                <vertical>
+                    <samples>1</samples>
+                    <resolution>1</resolution>
+                    <min_angle>0.0</min_angle>
+                    <max_angle>0.0</max_angle>
+                </vertical>
+                </scan>
+                <range>
+                    <min>0.05</min>
+                    <max>12.0</max>
+                    <resolution>0.01</resolution>
+                </range>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.02</stddev>
+                </noise>
+            </lidar>
+            <always_on>true</always_on>
+            <visualize>true</visualize>
+        </sensor>
+    </gazebo>
+
+    <gazebo reference="$(arg prefix)laser1_frame">
+        <sensor name='gpu_lidar1' type='gpu_lidar'>
+            <pose>0 0 0 0 0 0</pose>
+            <topic>/scan1</topic>
+            <!-- <ignition_frame_id>lidar_link</ignition_frame_id> -->
+            <frame_name>$(arg prefix)laser1_frame</frame_name>
+            <gz_frame_id>$(arg prefix)laser1_frame</gz_frame_id>
+            <update_rate>6</update_rate>
+            <lidar>
+                <scan>
+                <horizontal>
+                    <samples>667</samples>
+                    <resolution>1</resolution>
+                    <min_angle>-3.14159</min_angle>
+                    <max_angle>3.14159</max_angle>
+                </horizontal>
+                <vertical>
+                    <samples>1</samples>
+                    <resolution>1</resolution>
+                    <min_angle>0.0</min_angle>
+                    <max_angle>0.0</max_angle>
+                </vertical>
+                </scan>
+                <range>
+                    <min>0.05</min>
+                    <max>12.0</max>
+                    <resolution>0.01</resolution>
+                </range>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.02</stddev>
+                </noise>
+            </lidar>
+            <always_on>true</always_on>
+            <visualize>true</visualize>
+        </sensor>
+    </gazebo>
+    <!-- Joint state publisher (for /joint_states topic) -->
+    <gazebo>
+      <plugin
+        filename="gz-sim-joint-state-publisher-system"
+        name="gz::sim::systems::JointStatePublisher">
+        <topic>joint_states</topic>
+        <joint_name>lwheel1_Joint</joint_name>
+        <joint_name>lwheel2_Joint</joint_name>
+        <joint_name>rwheel1_Joint</joint_name>
+        <joint_name>rwheel2_Joint</joint_name>
+
+      </plugin>
+    </gazebo>
+    <gazebo reference="$(arg prefix)imu_frame">
+        <sensor name="imu" type="imu">
+            <always_on>1</always_on>
+            <update_rate>50</update_rate>
+            <visualize>true</visualize>
+            <topic>imu/data_raw</topic>
+            <enable_metrics>true</enable_metrics>
+            <ignition_frame_id>$(arg prefix)imu_frame</ignition_frame_id>
+        </sensor>
+    </gazebo>
+    <gazebo>
+        <plugin filename="libignition-gazebo-imu-system" name="ignition::gazebo::systems::Imu"/>
+    </gazebo>
+    <gazebo>    
+        <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+            <render_engine>ogre2</render_engine>
+        </plugin>
+    </gazebo>
+</robot>
+
+
