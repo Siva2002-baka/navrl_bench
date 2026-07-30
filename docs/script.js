@@ -8,4 +8,8 @@ themeSelect.addEventListener("change", function () {
   const selectedTheme = themeSelect.value;
   document.documentElement.setAttribute("data-theme", selectedTheme);
   localStorage.setItem("navrl-theme", selectedTheme);
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 14e3b3c (RL Local Controller)

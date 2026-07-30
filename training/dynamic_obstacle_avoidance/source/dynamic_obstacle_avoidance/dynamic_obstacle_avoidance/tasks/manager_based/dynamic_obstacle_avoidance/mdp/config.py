@@ -1,0 +1,173 @@
+
+
+domain_randomization_stages: list = [
+  'lidar_rays',
+  'scan_noise',
+  'scan_dropout',
+  'action_delay',
+  'motor_strength',
+  'mass',
+  'com_shift',
+  'wheel_radius',
+  'wheel_slip',
+  'combined_strong',
+]
+
+obstacle_stages: list = [
+  'center_stationary_tiny',
+  'side_stationary_tiny',
+  'center_stationary_small',
+  'side_stationary_small',
+  'center_stationary_medium',
+  'slow_crossing_far',
+  'slow_crossing_near',
+  'medium_crossing_far',
+  'medium_crossing_near',
+  'fast_crossing_far',
+  'same_lane_slow',
+  'same_lane_medium',
+  'reverse_same_lane_slow',
+  'center_stationary_large',
+  'two_crossing_combo',
+  'real_room_dynamic_clutter',
+]
+
+nav2_path_dataset_dir: str = "/home/pavan/Downloads/SUTD/DesignProject/navrl-bench/m3_ros2_ws/src/nav_rl_bridge/rl_path_dataset/aws_warehouse"
+nav2_map_yaml_path: str = "/home/pavan/Downloads/SUTD/DesignProject/navrl-bench/m3_ros2_ws/src/m3_ros2/maps/no_roof_warehouse.yaml"
+
+ACTIONS: dict = {
+    'wheel_joint_names': ["lwheel1_Joint", "lwheel2_Joint", "rwheel1_Joint", "rwheel2_Joint",],
+    'wheel_radius': 0.035,
+    'wheel_base_x': 0.0795,
+    'wheel_base_y': 0.09775,
+    'max_vx': 0.5,
+    'max_vy': 0.5,
+    'max_wz': 1.5,
+    'max_delta_vx': 0.025,
+    'max_delta_vy': 0.025,
+    'max_delta_wz': 0.08
+}
+
+OBSERVATIONS: dict = {
+    'actor': {
+        'local_path_window': {'params': {'num_points': 8, 'step': 8,},},
+        'nav2_heading_error': {},
+        'nav2_cross_track_error': {},
+        'combined_scan': {'params': {'num_rays': 144, 'max_range': 10.0, 'step_size': 0.10,},},
+        'dynamic_obstacles': {'params': {"num_obstacles": 4, "max_range": 10.0},},
+        'path_blocked': {'params': {"lookahead_points": 32, "path_radius": 0.35},},
+        'time_to_closest_approach': {'params': {"num_obstacles": 2, "max_range": 10.0, "horizon_s": 3.0},},
+        'base_lin_vel': {},
+        'base_angle_vel': {},
+        'previous_action': {},
+        'scan_history': {'params': {'history_len': 8, 'num_rays': 144, 'max_range': 10.0, 'step_size': 0.10,}},
+
+    },
+
+    'critic': {
+        'local_path_window': {'params': {'num_points': 8, 'step': 8,},},
+        'nav2_heading_error': {},
+        'nav2_cross_track_error': {},
+        'combined_scan': {'params': {'num_rays': 144, 'max_range': 10.0, 'step_size': 0.10,},},
+        'dynamic_obstacles': {'params': {"num_obstacles": 4, "max_range": 10.0},},
+        'path_blocked': {'params': {"lookahead_points": 32, "path_radius": 0.35},},
+        'time_to_closest_approach': {'params': {"num_obstacles": 2, "max_range": 10.0, "horizon_s": 3.0},},
+        'base_lin_vel': {},
+        'base_angle_vel': {},
+        'previous_action': {},
+        'distance_to_goal': {},
+        'progress_fraction': {},
+        'map_collision': {},
+        'dynamic_collision': {},
+        'scan_history': {'params': {'history_len': 8, 'num_rays': 144, 'max_range': 10.0, 'step_size': 0.10,}},
+        'future_path_blocked_1s': {'params': {'lookahead_points': 32, 'path_radius': 0.35, 'horizon_s': 1.0,}},
+        'path_blocked_now_or_future_1s': {'params': {"lookahead_points": 32, "path_radius": 0.35, 'horizon_s': 1.0},},
+
+    },
+}
+
+EVENTS: dict = {
+    'reset_nav2_path': {'max_path_points': 600,},
+    'reset_dynamic_obstacles': {'max_path_points': 600,},
+    'update_dynamic_obstacles': {'interval_range_s': (0.03, 0.03),},
+    'draw_nav2_debug': {'interval_range_s': (0.03, 0.03,), 'params': {"map_stride": 2,"max_map_points": 6000, "path_stride": 4, "num_rays": 72, "max_range": 10.0, "step_size": 0.05,},},
+    'log_curriculum_progress': {'interval_range_s': (1.0, 1.0), },
+    'log_map_collision_directions': {'interval_range_s': (1.0, 1.0), },
+}
+
+REWARDS: dict = {
+    'progress': {'weight': 35.0, 'max_step_progress': 0.05,},
+    'goal_approach':{'weight': 5.0, 'max_step_progress': 0.08,},
+    'cross_track': {'weight': -4.0, 'max_error': 1.0,},
+    'path_rejoin': {'weight': 15.0, 'active_threshold': 0.2,},
+    'heading_alignment': {'weight': 8.0, 'lookahead_index_offset': 4,},
+    'dynamic_collision': {'weight': -100.0,'robot_radius': 0.22,},
+    'dynamic_clearance': {'weight': -20.0, 'robot_radius': 0.22, 'clearance': 0.25,},
+    'dynamic_ttc': {'weight': -15.0, 'robot_radius': 0.22,'horizon_s': 3.0,},
+    'lateral_oscillation': {'weight': -0.35,},
+    'lateral_bypass': {'weight': 5.0, 'max_cte': 0.8},
+    'map_collision': {'weight': -150.0, 'radius': 0.22,},
+    'final_goal': {'weight': 120.0,'threshold': 0.30,},
+    'action_smoothness': {'weight': -0.06,},
+    'yaw_rate': {'weight': -0.05,},
+    'path_velocity': {'weight': 6.0,},
+    'time': {'weight': -0.06,},
+    'no_wait': {'weight': -2.0, 'speed_threshold': 0.10,},
+    'static_velocity_clearance': {'weight': -15.0, 'safe_distance': 0.30, 'max_range': 4.0, 'num_rays': 144, 'sector_half_angle_rad': 0.785398, 'min_speed': 0.05,},
+    'start_speed': {'weight': -8.0, 'warmup_s': 1.5,},
+    'mppi_imitation': {'weight': 25.0,},
+    'wall_aware_dynamic_bypass': {'weight': 20.0, 'lookahead_m': 2.0, 'corridor_half_width': 0.55, 'min_side_clearance': 0.45,},
+    'dynamic_yield_no_side_space': {'weight': 8.0, 'lookahead_m': 2.0, 'corridor_half_width': 0.55, 'min_side_clearance': 0.45,},
+    'dynamic_forward_blocked': {'weight': -4.0, 'lookahead_m': 2.0, 'corridor_half_width': 0.55,},
+    'dynamic_bad_lateral': {'weight': -8.0, 'lookahead_m': 2.0, 'corridor_half_width': 0.55, 'min_side_clearance': 0.45,},
+    'timeout_failure': {'weight': -200.0},
+    'gated_detour': {'weight': 4.0, 'params': {'danger_clearance': 0.55, 'max_cte': 1.20}},
+    'dynamic_corridor_closing': {'weight': -10.0, 'params': {'lookahead_m': 3.0, 'corridor_half_width': 0.65, 'danger_clearance': 0.80, 'robot_radius': 0.22,}},
+    'future_clear_no_lateral_bypass': {'weight': -10.0, 'params': {'horizon_s': 1.0, 'lookahead_m': 2.5, 'corridor_half_width': 0.45, 'free_cte': 0.30, 'max_cte': 1.0, }},
+    'adaptive_future_path_tracking': {'weight': -10.0, 'params': {'horizon_s': 1.0, 'lookahead_m': 2.5, 'corridor_half_width': 0.45, 'robot_radius': 0.22, 'track_free_cte': 0.30, 'track_max_cte': 0.90, 'detour_free_cte': 0.90, 'detour_max_cte': 1.50, }},
+    'future_aware_action_teacher': {'weight': -4.0, 'params': {'horizon_s': 1.0, 'lookahead_m': 2.5, 'corridor_half_width': 0.45, 'robot_radius': 0.22, 
+                                                               'normal_track_speed': 0.45, 'cautious_track_speed': 0.2, 'detour_forward_speed': 0.12, 'detour_lateral_speed': 0.3, 
+                                                               'k_track_cte': 0.8, 'k_detour_cte': 0.25, 'max_track_lateral_speed': 0.2, 
+                                                               'max_detour_correction_speed': 0.12, 'yaw_gain': 1.5,}},
+}
+
+TERMINATIONS: dict = {
+    'final_goal_reached': {'threshold': 0.3,},
+    'map_collision': {'radius': 0.22,},
+    'dynamic_collision': {'robot_radius': 0.22,},
+    'stuck': {'speed_threshold': 0.02, 'time_window_s': 2.0, 'grace_period_s': 2.0,}
+}
+
+MPPI_TEACHER: dict = {
+    'num_samples': 128,
+    'horizon': 24,
+    'dt': 0.05,
+    'temperature': 0.35,
+    'env_chunk_size': 128,
+    'recompute_interval': 2,
+
+    'vx_std': 0.22,
+    'vy_std': 0.32,
+    'wz_std': 0.50,
+
+    'max_delta_vx': ACTIONS['max_delta_vx'],
+    'max_delta_vy': ACTIONS['max_delta_vy'],
+    'max_delta_wz': ACTIONS['max_delta_wz'],
+
+    'robot_radius': 0.22,
+    'dynamic_clearance': 0.20,
+    'num_footprint_points': 8,
+    'static_map_inflation_radius_m': 0.12,
+
+    'path_step_per_t': 2,
+
+    'w_static_collision': 5000.0,
+    'w_dynamic_collision': 5000.0,
+    'w_dynamic_clearance': 40.0,
+    'w_path': 8.0,
+    'w_goal': 6.0,
+    'w_heading': 1.0,
+    'w_wait': 2.0,
+    'w_action': 0.05,
+    'w_smooth': 0.08,
+}

@@ -89,6 +89,10 @@ from datetime import datetime
 import gymnasium as gym
 import torch
 from rsl_rl.runners import DistillationRunner, OnPolicyRunner
+<<<<<<< HEAD
+=======
+import rsl_rl.runners.on_policy_runner as rsl_on_policy_runner
+>>>>>>> 14e3b3c (RL Local Controller)
 
 from isaaclab.envs import (
     DirectMARLEnv,
@@ -110,6 +114,29 @@ from isaaclab_tasks.utils.hydra import hydra_task_config
 logger = logging.getLogger(__name__)
 
 import dynamic_obstacle_avoidance.tasks  # type: ignore # noqa: F401
+<<<<<<< HEAD
+=======
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+# from ppo_mod import PPO as PPOModified
+from scan_transformer_actor_critic import ActorCriticScanTransformer
+
+import rsl_rl.modules as rsl_modules
+
+# Use local PPO copied from the same installed RSL-RL version.
+# This PPO has construct_algorithm(), so it can replace runner PPO directly.
+# rsl_on_policy_runner.PPO = PPOModified
+
+# Register custom actor-critic.
+rsl_modules.ActorCriticScanTransformer = ActorCriticScanTransformer
+rsl_on_policy_runner.ActorCriticScanTransformer = ActorCriticScanTransformer
+
+# print("[CUSTOM PPO] using full local ppo_mod.PPO", flush=True)
+print("[CUSTOM ACTOR] using ActorCriticScanTransformer", flush=True)
+>>>>>>> 14e3b3c (RL Local Controller)
 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
@@ -207,11 +234,28 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     if agent_cfg.class_name == "OnPolicyRunner":
         agent_cfg_dict = agent_cfg.to_dict()
 
+<<<<<<< HEAD
         # IsaacLab/RSL-RL version compatibility fix:
         # Some IsaacLab versions add this key, but my installed rsl_rl PPO does not accept it.
         agent_cfg_dict["algorithm"].pop("share_cnn_encoders", None)
         # runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
         runner = OnPolicyRunner(env, agent_cfg_dict, log_dir=log_dir, device=agent_cfg.device)
+=======
+        agent_cfg_dict["algorithm"].pop("share_cnn_encoders", None)
+
+        runner = OnPolicyRunner(
+            env,
+            agent_cfg_dict,
+            log_dir=log_dir,
+            device=agent_cfg.device,
+        )
+
+        print(
+            "[PPO_MOD ACTIVE] runner.alg =",
+            type(runner.alg),
+            flush=True,
+        )
+>>>>>>> 14e3b3c (RL Local Controller)
 
     elif agent_cfg.class_name == "DistillationRunner":
         runner = DistillationRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
@@ -224,6 +268,18 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         print(f"[INFO]: Loading model checkpoint from: {resume_path}")
         # load previously trained model
         runner.load(resume_path)
+<<<<<<< HEAD
+=======
+        with torch.no_grad():
+            for name, param in runner.alg.actor.named_parameters():
+                if "log_std" in name:
+                    import math
+                    param.fill_(math.log(0.25))
+                    print("[STD FIX] set", name, "to log(0.25)", flush=True)
+                elif "std" in name or "sigma" in name:
+                    param.fill_(0.25)
+                    print("[STD FIX] set", name, "to 0.25", flush=True)
+>>>>>>> 14e3b3c (RL Local Controller)
 
     # dump the configuration into log-directory
     dump_yaml(os.path.join(log_dir, "params", "env.yaml"), env_cfg)
@@ -242,4 +298,8 @@ if __name__ == "__main__":
     # run the main function
     main()
     # close sim app
+<<<<<<< HEAD
     simulation_app.close()
+=======
+    simulation_app.close()
+>>>>>>> 14e3b3c (RL Local Controller)

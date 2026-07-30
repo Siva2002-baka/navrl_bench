@@ -1,7 +1,25 @@
 from setuptools import find_packages, setup
+<<<<<<< HEAD
 
 package_name = 'nav_rl_bridge'
 
+=======
+import os
+
+package_name = 'nav_rl_bridge'
+
+def package_files(directory):
+    paths = []
+    for (path, directories, filenames) in os.walk(directory):
+        for filename in filenames:
+            # Construct the full local path
+            local_path = os.path.join(path, filename)
+            # Construct the destination path (share/package_name/path)
+            install_path = os.path.join('share', package_name, path)
+            paths.append((install_path, [local_path]))
+    return paths
+
+>>>>>>> 14e3b3c (RL Local Controller)
 setup(
     name=package_name,
     version='0.0.0',
@@ -10,6 +28,11 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+<<<<<<< HEAD
+=======
+        *package_files('config'),
+        *package_files('launch'),
+>>>>>>> 14e3b3c (RL Local Controller)
     ],
     install_requires=['setuptools'],
     zip_safe=True,
